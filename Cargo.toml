@@ -1,0 +1,12 @@
+[package]
+name = "sram22test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+arcstr = { version = "1.1.5", features = ["serde"] }
+serde = { version = "1.0.195", features = ["derive"] }
+substrate = { git = "https://github.com/ucb-substrate/substrate2.git" }
+sky130pdk = { git = "https://github.com/ucb-substrate/substrate2.git" }
+spice = { git = "https://github.com/ucb-substrate/substrate2.git" }
+spectre = { git = "https://github.com/ucb-substrate/substrate2.git" }
