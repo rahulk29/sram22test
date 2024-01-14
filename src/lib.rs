@@ -61,14 +61,13 @@ impl ExportsNestedData for SramMacro {
     type NestedData = ();
 }
 
-impl Schematic<Sky130Pdk> for SramMacro {
+impl Schematic<Spice> for SramMacro {
     fn schematic(
         &self,
         io: &<<Self as Block>::Io as HardwareType>::Bundle,
-        cell: &mut CellBuilder<Sky130Pdk>,
+        cell: &mut CellBuilder<Spice>,
     ) -> substrate::error::Result<Self::NestedData> {
-        let mut scir = Spice::scir_cell_from_file(&self.netlist_path, &format!("sram22_{}x{}m{}w{}", self.depth, self.width, self.mux_ratio, self.width / self.mask_width))
-            .convert_schema::<Sky130Pdk>()?;
+        let mut scir = Spice::scir_cell_from_file(&self.netlist_path, &format!("sram22_{}x{}m{}w{}", self.depth, self.width, self.mux_ratio, self.width / self.mask_width));
 
         for i in 0..self.addr_width() {
             scir.connect(&format!("addr[{i}]"), io.addr[i]);
@@ -132,11 +131,10 @@ mod tests {
     fn export_sram_macro() {
         let sram = sram_512x64m4w8_pex();
         let ctx = sky130_commercial_ctx();
-        let lib = ctx.export_scir::<Sky130Pdk, _>(sram).unwrap();
-        let spice_lib = lib.scir.convert_schema::<Spice>().unwrap().build().unwrap();
+        let lib = ctx.export_scir::<Spice, _>(sram).unwrap();
 
         Spice
-            .write_scir_netlist_to_file(&spice_lib, "build/schematic.spice", Default::default())
+            .write_scir_netlist_to_file(&lib.scir, "build/schematic.spice", Default::default())
             .expect("failed to write schematic");
     }
 }
