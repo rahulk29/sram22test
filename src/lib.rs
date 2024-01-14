@@ -1,12 +1,12 @@
-use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use sky130pdk::Sky130Pdk;
 use spice::Spice;
+use std::path::PathBuf;
 use substrate::arcstr::ArcStr;
 use substrate::block::Block;
 use substrate::context::{Context, PdkContext};
-use substrate::io::{Array, InOut, Input, Io, Output, Signal};
 use substrate::io::schematic::HardwareType;
+use substrate::io::{Array, InOut, Input, Io, Output, Signal};
 use substrate::schematic::{CellBuilder, ExportsNestedData, Schematic};
 
 #[derive(Io, Clone, Debug)]
@@ -67,22 +67,31 @@ impl Schematic<Spice> for SramMacro {
         io: &<<Self as Block>::Io as HardwareType>::Bundle,
         cell: &mut CellBuilder<Spice>,
     ) -> substrate::error::Result<Self::NestedData> {
-        let mut scir = Spice::scir_cell_from_file(&self.netlist_path, &format!("sram22_{}x{}m{}w{}", self.depth, self.width, self.mux_ratio, self.width / self.mask_width));
+        let mut scir = Spice::scir_cell_from_file(
+            &self.netlist_path,
+            &format!(
+                "sram22_{}x{}m{}w{}",
+                self.depth,
+                self.width,
+                self.mux_ratio,
+                self.width / self.mask_width
+            ),
+        );
 
         for i in 0..self.addr_width() {
-            scir.connect(&format!("addr[{i}]"), io.addr[i]);
+            scir.connect(&format!("ADDR[{i}]"), io.addr[i]);
         }
-        scir.connect("we", io.we);
+        scir.connect("WE", io.we);
         for i in 0..self.mask_width {
-            scir.connect(&format!("wmask[{i}]"), io.wmask[i]);
+            scir.connect(&format!("WMASK[{i}]"), io.wmask[i]);
         }
         for i in 0..self.width {
-            scir.connect(&format!("din[{i}]"), io.din[i]);
-            scir.connect(&format!("dout[{i}]"), io.dout[i]);
+            scir.connect(&format!("DIN[{i}]"), io.din[i]);
+            scir.connect(&format!("DOUT[{i}]"), io.dout[i]);
         }
-        scir.connect("vss", io.vss);
-        scir.connect("vdd", io.vdd);
-        scir.connect("clk", io.clk);
+        scir.connect("VSS", io.vss);
+        scir.connect("VDD", io.vdd);
+        scir.connect("CLK", io.clk);
 
         cell.set_scir(scir);
         Ok(())
@@ -111,11 +120,10 @@ pub fn sky130_commercial_ctx() -> PdkContext<Sky130Pdk> {
         .with_pdk()
 }
 
-
 #[cfg(test)]
 mod tests {
-    use substrate::schematic::netlist::ConvertibleNetlister;
     use crate::*;
+    use substrate::schematic::netlist::ConvertibleNetlister;
 
     fn sram_512x64m4w8_pex() -> SramMacro {
         SramMacro {
